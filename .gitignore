@@ -1,0 +1,16 @@
+# Dependencias
+node_modules/
+
+# Build
+dist/
+
+# Variables de entorno locales (nunca commitear secretos)
+.env
+.env.local
+
+# Firebase
+.firebase/
+.firebaserc
+
+# Logs
+*.log
