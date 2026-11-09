@@ -13,3 +13,9 @@ createRoot(contenedor).render(
     <App />
   </StrictMode>,
 )
+
+// Registro del service worker solo en producción: el SW mínimo da shell
+// offline; en desarrollo hay recarga en caliente y no interfiere.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  void navigator.serviceWorker.register('/sw.js')
+}
