@@ -16,7 +16,10 @@
     "test": "vitest run",
     "test:run": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "emulators": "firebase emulators:start --project demo-velmeya-local",
+    "build:functions": "pnpm --filter velmeya-functions build",
+    "typecheck:functions": "pnpm --filter velmeya-functions typecheck"
   },
   "dependencies": {
     "react": "^19.3.1",

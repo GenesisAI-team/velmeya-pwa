@@ -14,3 +14,13 @@ dist/
 
 # Logs
 *.log
+
+# Salida de pruebas y cobertura
+coverage/
+
+# Funciones compiladas
+functions/dist/
+
+# Datos exportados por los emuladores Firebase
+.emulator-data/
+firebase-export/
