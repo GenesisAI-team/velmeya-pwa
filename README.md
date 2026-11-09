@@ -1,16 +1,17 @@
 # Velmeya PWA
 
-> **Estado del repositorio: inicial.**
-> Este `README.md` describe la visión y el flujo de trabajo previsto del proyecto.
-> Todavía **no existe `package.json` ni código funcional** en la rama `main`;
-> todos los comandos y configuraciones de este documento están marcados como
-> **previstos / pendientes de implementación** y ninguno debe considerarse operativo.
+> **Estado del repositorio: bootstrap técnico operativo (`GEN-35`).**
+> La visión original sigue vigente; el bootstrap de `GEN-35` añadió
+> `package.json`, estructura de dominio/infraestructura, tests, PWA mínima y
+> configuración de emuladores. Los comandos de este README ya son
+> operativos y están descritos en detalle en `docs/WORKFLOW.md`.
 
 PWA de reservas de clases de yoga: consultar horarios, reservar plaza y gestionar
 reservas desde el móvil y el escritorio, con experiencia instalable y funcionamiento
 base sin conexión.
 
-Issue de Linear asociada: `GEN-7`.
+Issues de Linear asociadas: `GEN-7` (visión y convenciones) y `GEN-35`
+(bootstrap técnico).
 
 ---
 
@@ -50,25 +51,19 @@ Público inicial: alumnado y profesorado de un estudio de yoga pequeño o median
 Esta visión se refinará en la documentación de arquitectura y modelo de datos
 cuando se creen (ver sección 4).
 
-## 2. Stack previsto
+## 2. Stack (instalado en el bootstrap GEN-35)
 
-Stack previsto (pendiente de implementación; las versiones exactas se fijarán en
-`package.json`, `pnpm-workspace.yaml` o equivalente cuando se cree el bootstrap
-técnico):
-
-- **React + TypeScript** como base de la interfaz.
+- **React 19 + TypeScript** como base de la interfaz.
 - **Vite** como herramienta de desarrollo y construcción.
-- **pnpm** como gestor de paquetes.
-- **Firebase** como backend gestionado:
-  - **Hosting** para servir la PWA.
+- **pnpm** como gestor de paquetes (versión fijada en `packageManager`).
+- **Vitest + Testing Library + jsdom** para pruebas unitarias y smoke.
+- **ESLint 10** con `typescript-eslint` y plugins de React.
+- **Firebase** como backend gestionado (pendiente de conectar en issues
+  posteriores; el bootstrap solo configura el entorno local):
   - **Auth** para autenticación de usuarios.
   - **Firestore** como base de datos principal.
-  - **Functions v2** (segunda generación de Cloud Functions) para lógica de servidor.
+  - **Functions v2** para lógica de servidor (scaffold en `functions/`).
   - **Emulator Suite** para desarrollo y pruebas en local sin tocar producción.
-
-> Nota: todavía no existe `package.json`, `vite.config.*`, `firebase.json` ni
-> ningún código funcional. Todo lo anterior es el stack **previsto**, no el
-> stack instalado.
 
 ## 3. Estructura del repositorio (prevista)
 
@@ -77,70 +72,49 @@ se crearán en issues posteriores al bootstrap técnico:
 
 ```text
 velmeya-pwa/
-├── README.md              # Este archivo (único archivo actual además de .gitignore)
-├── AGENTS.md              # Pendiente de creación
-├── docs/                  # Pendiente de creación
-│   ├── ARCHITECTURE.md    # Pendiente de creación
-│   ├── WORKFLOW.md        # Pendiente de creación
-│   └── DATA_MODEL.md      # Pendiente de creación
-├── src/                   # Pendiente: código React + TypeScript
-├── public/                # Pendiente: manifiesto PWA, iconos, estáticos
-├── functions/             # Pendiente: Cloud Functions (v2)
-├── .env.example           # Pendiente: ejemplo de variables de entorno (sin secretos)
-└── package.json           # Pendiente: todavía no existe
+├── README.md              # Este archivo
+├── AGENTS.md              # Contrato para agentes
+├── docs/                  # ARCHITECTURE.md, WORKFLOW.md y DATA_MODEL.md
+├── src/                   # Código React + TS (dominio, infraestructure, UI)
+├── public/                # Manifiesto PWA, iconos, sw.js, favicon
+├── functions/             # Cloud Functions v2 (scaffold con ping)
+├── .env.example           # Ejemplo de variables de entorno (sin secretos)
+└── package.json           # Scripts de calidad y desarrollo
 ```
 
-La estructura definitiva se documentará en `docs/ARCHITECTURE.md` cuando exista.
-Si algún elemento de la lista anterior ya existe en tu copia, tiene prioridad lo
-que haya en disco frente a este esquema previsto.
+La estructura completa (sin abreviar) está documentada en
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-## 4. Documentación complementaria (pendiente)
+## 4. Documentación complementaria
 
-Los siguientes documentos **aún no existen** y por eso se citan como rutas en
-texto (código) y no como enlaces activos, para no dejar enlaces rotos:
-
-- `AGENTS.md` — pendiente de creación. Definirá normas para agentes y
-  automatización (convenciones, permisos, límites).
-- `docs/ARCHITECTURE.md` — pendiente de creación. Decisiones de arquitectura,
-  PWA/offline, módulos y despliegue lógico.
-- `docs/WORKFLOW.md` — pendiente de creación. Detalle operativo del flujo de
-  ramas, revisiones y CI.
-- `docs/DATA_MODEL.md` — pendiente de creación. Colecciones de Firestore,
-  reglas y funciones vinculadas.
-
-Cuando se creen, este README enlazará a ellos y este aviso se retirará.
-Mientras tanto, este README es la única fuente de introducción al proyecto.
+- [`AGENTS.md`](AGENTS.md) — normas para agentes y automatización
+  (seguridad, flujo Linear/GitHub, TDD obligatorio, quality gates).
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitectura, capas,
+  decisiones (mini-ADRs) y límites offline de la PWA.
+- [`docs/WORKFLOW.md`](docs/WORKFLOW.md) — comando a comando, emuladores,
+  flujo de ramas/PR y gestión de secretos.
+- [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md) — colecciones de Firestore,
+  contratos del dominio, reglas de negocio y seguridad.
 
 ## 5. Prerrequisitos
 
-Herramientas necesarias (se indican rangos genéricos; las versiones exactas
-requeridas por el proyecto quedan pendientes de fijar en `package.json` /
-`engines` cuando exista):
-
-- **Node.js** en versión LTS reciente (rango genérico; versión exacta pendiente
-  de definir).
-- **pnpm** instalado globalmente (versión exacta pendiente de definir; seguir
-  la documentación oficial de pnpm para la instalación).
-- **Firebase CLI** instalada globalmente para emuladores y gestión del proyecto
-  Firebase (versión exacta pendiente de definir; requiere una cuenta con acceso
-  al proyecto Firebase correspondiente).
+- **Node.js 22+** (CI usa la línea 22; `package.json` exige `>=22`).
+- **pnpm 10** (versión exacta fijada en `packageManager`; `corepack enable`
+  la respeta automáticamente).
+- **Firebase CLI ≥ 15** (global) para el Emulator Suite; requiere **JDK 21+**
+  a su vez (ver `docs/WORKFLOW.md`, sección de emuladores).
 - **Git** para control de versiones.
 - Un editor con soporte TypeScript (recomendado, no obligatorio).
 
-Verificación orientativa (los comandos dependen de que cada herramienta esté
-instalada; no verifican nada del proyecto porque el proyecto aún no tiene
-dependencias):
+Verificación:
 
 ```bash
-node --version
-pnpm --version
+node --version   # v22.x o superior
+pnpm --version   # 10.x
 firebase --version
 ```
 
-## 6. Instalación inicial (prevista)
-
-> Secuencia prevista. Hoy **no es ejecutable** porque no existe `package.json`.
-> Se documenta aquí para que el primer bootstrap la siga sin improvisar.
+## 6. Instalación inicial
 
 ```bash
 # 1. Clonar el repositorio y situarse en la rama de trabajo
@@ -149,41 +123,45 @@ cd velmeya-pwa
 git checkout main
 git pull origin main
 
-# 2. Instalar dependencias (previsto; fallará hasta que exista package.json)
-pnpm install
+# 2. Instalar dependencias (app raíz + functions del workspace)
+pnpm install --frozen-lockfile
 
 # 3. Copiar el ejemplo de entorno y ajustarlo en local (ver sección 7)
-# El archivo .env.example aún no existe; se creará con el bootstrap.
 cp .env.example .env.local
 
-# 4. Arrancar el entorno local (previsto)
-pnpm dev
+# 4. Arrancar el entorno local
+pnpm dev     # http://localhost:5173
 ```
 
-Si el paso `pnpm install` falla con un error del tipo "no se encontró
-`package.json`", es el comportamiento esperado en este punto del proyecto.
+Verificación rápida post-instalación (todos los quality gates):
+
+```bash
+pnpm lint && pnpm typecheck && pnpm test:run && pnpm build
+```
+
+Si algo falla, detente y reporta el fallo con la salida completa; no se
+salta ninguna comprobación (ver `AGENTS.md`).
 
 ## 7. Configuración local y variables de entorno
 
-- Nunca se commitean secretos. Los archivos reales de entorno (por ejemplo
-  `.env`, `.env.local`) están o estarán ignorados por `.gitignore` y solo viven
-  en cada máquina.
-- El repositorio expondrá un archivo de ejemplo **`.env.example`** con claves y
-  valores ficticios (`placeholder`). Ese archivo **aún no existe**; el bloque
-  siguiente muestra el **contenido previsto** para cuando se cree, y sirve como
-  contrato de nombres. No contiene ningún secreto real.
+- Nunca se commitean secretos. Los archivos reales de entorno (`.env`,
+  `.env.local`) están ignorados por `.gitignore` y solo viven en cada
+  máquina.
+- El repositorio incluye un archivo de ejemplo **`.env.example`** con claves
+  y valores ficticios (`placeholder`), exactamente el contenido del bloque
+  siguiente. No contiene ningún secreto real.
 
-Contenido previsto de `.env.example` (valores ficticios, solo ejemplo):
+Contenido correlativo de `.env.example` (valores ficticios, solo ejemplo):
 
 ```bash
-# Ejemplo previsto de .env.example — VALORES FICTICIOS, no usar en producción.
+# Ejemplo de .env.example — VALORES FICTICIOS, no usar en producción.
 # Copiar a .env.local y rellenar con valores locales / del Emulator Suite.
 
 # Proyecto Firebase (identificadores públicos no sensibles del proyecto)
 VITE_FIREBASE_API_KEY=placeholder-api-key
-VITE_FIREBASE_AUTH_DOMAIN=placeholder-auth-domain
+VITE_FIREBASE_AUTH_DOMAIN=placeholder-auth-domain.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=placeholder-project-id
-VITE_FIREBASE_STORAGE_BUCKET=placeholder-storage-bucket
+VITE_FIREBASE_STORAGE_BUCKET=placeholder-storage-bucket.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=placeholder-sender-id
 VITE_FIREBASE_APP_ID=placeholder-app-id
 
@@ -193,41 +171,37 @@ VITE_USE_FIREBASE_EMULATORS=true
 
 Reglas de uso:
 
-1. `cp .env.example .env.local` (cuando ambos existan) y edita solo `.env.local`.
+1. `cp .env.example .env.local` y edita solo `.env.local`.
 2. No copies valores de producción a `.env.local` salvo indicación explícita.
-3. Si una clave falta en `.env.example`, propone añadirla con valor `placeholder`
-   en la misma PR que la necesite, sin incluir el valor real.
+3. Si una clave falta en `.env.example`, se propone añadirla con valor
+   `placeholder` en la misma PR que la necesite, sin incluir el valor real.
 
-## 8. Comandos de desarrollo (previstos, no operativos)
+## 8. Comandos de desarrollo (operativos)
 
-> ⚠️ **Aviso importante:** en este momento **no existe `package.json`** en el
-> repositorio, por lo que **ninguno** de los comandos siguientes es operativo.
-> La tabla completa describe comandos **previstos / pendientes de
-> implementación**. Los nombres de script son la convención que seguirá el
-> futuro `package.json`; pueden ajustarse en el bootstrap técnico.
+Todos los comandos existen en `package.json` y están en verde en CI:
 
-| Comando | Estado | Descripción prevista |
-|---|---|---|
-| `pnpm install` | ⏳ Previsto / pendiente | Instalar dependencias (requiere `package.json`, aún inexistente). |
-| `pnpm dev` | ⏳ Previsto / pendiente | Arrancar el servidor de desarrollo de Vite en local. |
-| `pnpm lint` | ⏳ Previsto / pendiente | Ejecutar el linter sobre el código. |
-| `pnpm typecheck` | ⏳ Previsto / pendiente | Verificación de tipos TypeScript sin emitir archivos. |
-| `pnpm test` | ⏳ Previsto / pendiente | Lanzar la suite de pruebas unitarias (modo por defecto del runner previsto). |
-| `pnpm test:run` | ⏳ Previsto / pendiente | Lanzar las pruebas una sola vez (modo CI / sin watch). |
-| `pnpm test:e2e` | ⏳ Previsto / pendiente | Lanzar las pruebas end-to-end (herramienta concreta pendiente de definir). |
-| `pnpm build` | ⏳ Previsto / pendiente | Construir la PWA para producción. |
-| `pnpm preview` | ⏳ Previsto / pendiente | Previsualizar localmente la construcción de producción. |
-| `pnpm emulators` | ⏳ Previsto / pendiente | Arrancar Firebase Emulator Suite (Firestore, Auth, Functions u otros por definir). |
-| `pnpm test:coverage` | ⏳ Previsto / pendiente | Ejecutar pruebas con informe de cobertura. |
+| Comando | Descripción |
+|---|---|
+| `pnpm install` | Instala dependencias (app raíz + functions del workspace). |
+| `pnpm dev` | Servidor Vite (`http://localhost:5173`). |
+| `pnpm lint` | ESLint 10 sobre `src/`, `functions/` y configs. |
+| `pnpm typecheck` | Verificación de tipos (`tsc -b`, app + configs). |
+| `pnpm test` | Pruebas unitarias y smoke en una pasada (Vitest run). |
+| `pnpm test:run` | Alias de `pnpm test`, útil en CI. |
+| `pnpm test:watch` | Vitest en modo reloj para desarrollo. |
+| `pnpm test:coverage` | Con informe de cobertura (v8). |
+| `pnpm build` | `tsc -b && vite build` → `dist/` (PWA lista para servir). |
+| `pnpm preview` | Previsualiza el build de producción en local. |
+| `pnpm emulators` | Firebase Emulator Suite con proyecto `demo-velmeya-local`. |
+| `pnpm build:functions` | Compila `functions/` (Cloud Functions v2). |
+| `pnpm typecheck:functions` | Tipos de `functions/` sin emitir. |
 
 Notas:
 
-- No ejecutes estos comandos esperando un resultado útil hasta que exista
-  `package.json` y la documentación del bootstrap confirme cada script.
-- Si un comando de la tabla no existe tras el bootstrap, tiene prioridad el
-  `package.json` real y este README deberá actualizarse.
-- Los flags, puertos y opciones concretas (por ejemplo el puerto de `dev` o de
-  los emuladores) quedan pendientes de definir en la configuración futura.
+- `pnpm test` y `pnpm test:run` son equivalentes: ambas ejecutan `vitest run`
+  (sin watch) para que ningún gate quede colgado de un proceso interactivo.
+- `test:e2e` queda para issue futura (fuera de alcance del bootstrap
+  `GEN-35`); no existe en `package.json` todavía.
 
 ## 9. Flujo de desarrollo con Linear
 
@@ -239,44 +213,50 @@ issue y termina con su transición de estado.
    criterios de aceptación; la PR debe referenciarla.
 2. **Mover la issue en Linear.** Transición esperada:
    `Todo` → `In Progress` (al empezar) → `In Review` (al abrir la PR) →
-   `Done` (al fusionar). Mueve la issue a `In Progress` antes de programar y a
-   `In Review` al solicitar revisión.
+   `Done` (al fusionar). Las transiciones las ejecuta el coordinador o
+   persona responsable; los agentes no escriben en Linear por defecto
+   (ver `AGENTS.md`).
 3. **Crear una rama por issue** desde `main` actualizado, con la convención:
    - `feat/GEN-XXX-descripcion-corta` para funcionalidad.
    - `fix/GEN-XXX-descripcion-corta` para correcciones.
    - `docs/GEN-XXX-descripcion-corta` para documentación (como este README).
    
    Ejemplo: `docs/GEN-7-readme-comandos-desarrollo`.
-4. **Checks antes de pedir revisión** (cuando las herramientas existan; hoy son
-   objetivos pendientes, no gates operativos):
+4. **Gates antes de pedir revisión** (operativos, automatizados también en CI):
    - `pnpm lint` sin errores.
-   - `pnpm typecheck` sin errores.
-   - `pnpm test:run` (y `pnpm test:e2e` si la issue toca flujos críticos) en verde.
-   - `pnpm build` genera la PWA sin errores.
+   - `pnpm typecheck` (y `typecheck:functions` si toca `functions/`).
+   - `pnpm test:run` en verde.
+   - `pnpm build` genera la PWA sin errores (y `build:functions` si toca).
    - Sin secretos ni credenciales en el diff; `.env.local` nunca se commitea.
+   - CI de GitHub Actions en verde para el push (`.github/workflows/ci.yml`).
 5. **Abrir la Pull Request** contra `main`, con título que cite la issue
    (p. ej. `docs(GEN-7): ...`) y descripción que la referencie (p. ej.
    `Closes GEN-7` o la sintaxis que use el equipo para Linear). Solicita
-   revisión y mueve la issue a `In Review`.
-6. **Fusión y cierre.** Tras la aprobación y los checks en verde, fusiona y la
-   issue pasa a `Done`. El detalle operativo de CI y fusiones se definirá en
-   `docs/WORKFLOW.md` cuando exista.
+   revisión y comunica al coordinador para pasar la issue a `In Review`.
+6. **Fusión y cierre.** Tras la aprobación y los checks en verde, quien revise
+   fusiona y la issue pasa a `Done`. El detalle operativo de CI y fusiones
+   está en `docs/WORKFLOW.md`.
 
-## 10. Firebase Emulator Suite (notas breves)
+## 10. Firebase Emulator Suite (configuración real)
 
-- La Emulator Suite permite desarrollar y probar contra emuladores locales de
-  Firestore, Auth, Functions y otros servicios, **sin escribir en el proyecto
-  real de Firebase**.
-- El comando previsto es `pnpm emulators` (pendiente de implementación; la
-  configuración concreta de puertos y servicios emulados se definirá en el
-  futuro `firebase.json` y en `docs/ARCHITECTURE.md`).
-- Flujo previsto: arranca los emuladores, luego `pnpm dev` con
-  `VITE_USE_FIREBASE_EMULATORS=true` (ver sección 7) para que el frontend apunte
-  a local. Los datos de los emuladores son volátiles salvo que se configure
-  exportación/importación (pendiente de definir).
-- Si algo falla al arrancar los emuladores, revisa primero que Firebase CLI esté
-  instalada y que `firebase.json` exista; hoy ninguno de esos requisitos está
-  cumplido porque el bootstrap aún no se ha hecho.
+- El Emulator Suite permite desarrollar y probar contra emuladores locales de
+  Auth, Firestore y Functions **sin escribir en el proyecto real de Firebase**.
+- Configuración en `firebase.json`: UI `4000`, Auth `9099`, Firestore
+  `8080`, Functions `5001`, `singleProject: true`; reglas de Firestore en
+  `firestore.rules` (deny-all inicial).
+- Comando: `pnpm emulators`, equivalente a
+  `firebase emulators:start --project demo-velmeya-local`. El prefijo
+  `demo-` garantiza que nunca se toca producción y evita necesitar
+  `firebase login` ni `.firebaserc`.
+- Los datos del emulador son volátiles; exporta/importa con
+  `--export-on-exit` / `--import` a una carpeta `.emulator-data`
+  (ignorada por Git).
+- Requisito: Firebase CLI ≥ 15 y **JDK 21+** (con JDK 17 el arranque falla
+  con «firebase-tools no longer supports Java version before 21»; ver
+  `docs/WORKFLOW.md`).
+- Flujo: arranca los emuladores y usa `VITE_USE_FIREBASE_EMULATORS=true`
+  en `.env.local` para que el código local apunte a ellos. Aún no hay
+  SDK inicializado: la app muestra el aviso de entorno sin consultas.
 
 ## 11. Protección de credenciales
 
@@ -302,9 +282,9 @@ issue y termina con su transición de estado.
 - **Producción**: proyecto Firebase real, variables gestionadas en el entorno de
   alojamiento/CI, fuera del repositorio. Nadie debe copiar valores de
   producción a archivos locales salvo procedimiento explícito del equipo.
-- El conmutador previsto entre ambos es `VITE_USE_FIREBASE_EMULATORS`
-  (`true` en local, `false` o ausente contra el proyecto real), pendiente de
-  implementación en el código.
+- El conmutador entre ambos es `VITE_USE_FIREBASE_EMULATORS` (`true` en
+  local, `false` o ausente contra el proyecto real), implementado en
+  `src/infrastructure/firebase/config.ts` (`usarEmuladores`).
 - En caso de duda sobre a qué entorno apunta tu copia, detente y verifica la
   configuración antes de ejecutar escrituras.
 
@@ -312,13 +292,15 @@ issue y termina con su transición de estado.
 
 - Este README **no incluye instrucciones de despliegue**. Cualquier paso de
   despliegue a Hosting / Functions queda pendiente de verificar y se
-  documentará cuando exista la configuración y el procedimiento probado.
-- Tampoco define versiones exactas, URLs definitivas, el esquema de Firestore
-  ni las reglas de seguridad: todo ello corresponde a `package.json`,
-  `docs/ARCHITECTURE.md` y `docs/DATA_MODEL.md` cuando se creen.
+  documentará cuando exista la configuración y el procedimiento probado
+  (en issue propia; `firebase.json` no incluye hosting por decisión del
+  bootstrap).
+- Las reservas y cancelaciones completas, el panel admin, los emails y los
+  pagos siguen siendo alcance futuro; el dominio en `src/domain` define
+  solo contratos y validaciones amparadas por tests.
 
 ---
 
-*Documento creado para `GEN-7`. Actualizar cuando se complete el bootstrap
-técnico (`package.json`, `firebase.json`, `.env.example`) y cuando se creen
-`AGENTS.md` y `docs/`.*
+*Documento original de `GEN-7` y actualizado por el bootstrap `GEN-35`
+(`package.json`, `firebase.json`, `.env.example`, `AGENTS.md` y `docs/`).
+Mantener en sincronía con el estado real del repo.*
