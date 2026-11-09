@@ -58,6 +58,7 @@ export interface EntradaReserva {
   usuarioId?: string
   estado?: string
   creadaEn?: string
+  canceladaEn?: string
 }
 
 /**

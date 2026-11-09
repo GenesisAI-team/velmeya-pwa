@@ -1,8 +1,24 @@
-import type { EntradaUsuario, Usuario, Validacion } from './tipos'
+import type { EntradaUsuario, RolUsuario, Usuario, Validacion } from './tipos'
 
-// GEN-35: contrato del dominio de usuarios. La lógica se implementa al pasar
-// los tests (fase verde); el stub hace fallar la suite con el motivo esperado.
-export function validarUsuario(_entrada: EntradaUsuario): Validacion<Usuario> {
-  void _entrada
-  throw new Error('GEN-35: validarUsuario sin implementar')
+const ROLES: readonly string[] = ['alumno', 'profesor', 'admin']
+const PATRON_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+export function validarUsuario(entrada: EntradaUsuario): Validacion<Usuario> {
+  const errores: string[] = []
+
+  const id = entrada.id?.trim() ?? ''
+  if (!id) errores.push('ID_REQUERIDO')
+
+  const nombre = entrada.nombre?.trim() ?? ''
+  if (!nombre) errores.push('NOMBRE_REQUERIDO')
+
+  const email = entrada.email?.trim().toLowerCase() ?? ''
+  if (!PATRON_EMAIL.test(email)) errores.push('EMAIL_INVALIDO')
+
+  const rol = entrada.rol
+  if (!rol || !ROLES.includes(rol)) errores.push('ROL_INVALIDO')
+
+  if (errores.length > 0 || !rol) return { ok: false, errores }
+
+  return { ok: true, valor: { id, nombre, email, rol: rol as RolUsuario } }
 }
