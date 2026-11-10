@@ -124,6 +124,151 @@ body {
   color: var(--color-texto-suave);
 }
 
+/* Fase 2 (GEN-46): sesión, formularios y horarios. */
+
+.estadoCarga {
+  margin: 0;
+  color: var(--color-texto-suave);
+  font-style: italic;
+}
+
+.avisoError {
+  margin: 0.5rem 0;
+  color: #8c2f21;
+  font-weight: 600;
+}
+
+.sesionActiva {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+  color: var(--color-primario);
+}
+
+.formularioSesion {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 22rem;
+  margin-top: 0.75rem;
+}
+
+.campoEtiqueta {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+}
+
+.campoTexto {
+  font: inherit;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  background: var(--fondo-superficie);
+  color: var(--color-texto);
+}
+
+.campoTexto:disabled {
+  opacity: 0.6;
+}
+
+.botonPrimario,
+.botonSecundario {
+  font: inherit;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.botonPrimario {
+  margin-top: 0.5rem;
+  background: var(--color-primario);
+  color: #f6f5f1;
+}
+
+.botonPrimario:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.botonSecundario {
+  margin-top: 0.75rem;
+  background: var(--fondo-superficie);
+  color: var(--color-primario);
+  border-color: var(--color-primario);
+}
+
+.listaClases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.tarjetaClase {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-borde);
+  border-radius: 0.75rem;
+  background: var(--fondo-superficie);
+  cursor: pointer;
+}
+
+.tarjetaClase:hover,
+.tarjetaClase:focus-visible {
+  border-color: var(--color-primario);
+  background: var(--color-primario-suave);
+}
+
+.tituloClase {
+  font-size: 1rem;
+}
+
+.metaClase {
+  color: var(--color-texto-suave);
+  font-size: 0.9rem;
+}
+
+.detalleClase {
+  margin-top: 0.9rem;
+  padding: 0.85rem;
+  border: 1px solid var(--color-primario);
+  border-radius: 0.75rem;
+  background: var(--color-primario-suave);
+}
+
+.tituloDetalle {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.fichaDetalle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 1rem;
+  margin: 0;
+}
+
+.fichaDetalle dt {
+  font-weight: 600;
+  color: var(--color-texto-suave);
+}
+
+.fichaDetalle dd {
+  margin: 0;
+}
+
+.notaDetalle {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-texto-suave);
+}
+
 .pie {
   padding: 0.9rem 1rem;
   color: var(--color-texto-suave);

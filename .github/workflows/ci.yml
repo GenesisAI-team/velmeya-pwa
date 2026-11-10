@@ -44,3 +44,33 @@ jobs:
 
       - name: Build Functions v2
         run: pnpm build:functions
+
+  emuladores:
+    name: Reglas y adaptadores en Emulator Suite (demo-velmeya-local)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Instalar JDK 21 (requisito del Emulator Suite)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Instalar dependencias (workspace raíz + functions)
+        run: pnpm install --frozen-lockfile
+
+      # Proyecto demo (prefijo demo-): nunca toca un proyecto Firebase real.
+      - name: Tests de reglas y adaptadores contra los emuladores
+        run: >-
+          pnpm exec firebase emulators:exec
+          --project demo-velmeya-local
+          --only auth,firestore
+          "pnpm test:emuladores"

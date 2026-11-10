@@ -21,3 +21,21 @@ export function esEnteroEnRango(
     valor <= max
   )
 }
+
+export interface PartesFechaISO {
+  /** Parte de fecha del instante, tal como está escrita (p. ej. 2026-12-01). */
+  fecha: string
+  /** Parte de hora (HH:MM), tal como está escrita, sin conversión de zona. */
+  hora: string
+}
+
+/**
+ * Separa fecha y hora de un instante ISO 8601 tal como está almacenado,
+ * sin conversión de zona horaria (el horario del estudio se muestra tal cual
+ * se contrató). Devuelve null si la cadena no es un instante ISO válido.
+ */
+export function partesFechaISO(instante: string): PartesFechaISO | null {
+  if (!esFechaISO(instante)) return null
+  const [fecha, resto] = instante.split('T')
+  return { fecha, hora: resto.slice(0, 5) }
+}
