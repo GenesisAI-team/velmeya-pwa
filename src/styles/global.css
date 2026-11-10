@@ -1,0 +1,155 @@
+/* Shell responsive mínimo de Velmeya (GEN-35).
+   Mobile-first; contenedor fluido y mejoras progresivas en pantallas grandes. */
+
+:root {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #1c2321;
+  background-color: #f6f5f1;
+  color-scheme: light;
+  --color-primario: #145145;
+  --color-primario-suave: #e5efea;
+  --color-texto: #1c2321;
+  --color-texto-suave: #5a6a63;
+  --color-borde: #d8d5cd;
+  --fondo-superficie: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100vh;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+  background: var(--color-primario);
+  color: #f6f5f1;
+  position: sticky;
+  top: 0;
+}
+
+.cabecera nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.cabecera a {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.5rem;
+}
+
+.cabecera a:hover,
+.cabecera a:focus-visible {
+  background: rgba(246, 245, 241, 0.15);
+}
+
+.marca {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.principal {
+  flex: 1;
+  width: min(100% - 2rem, 60rem);
+  margin-inline: auto;
+  display: grid;
+  gap: 1.25rem;
+  padding-block: 1.25rem;
+}
+
+.hero {
+  padding: 1.25rem 1rem;
+  border-radius: 1rem;
+  background: var(--color-primario-suave);
+  border: 1px solid var(--color-borde);
+}
+
+.heroTitulo {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.heroTexto {
+  margin: 0 0 0.75rem;
+  color: var(--color-texto-suave);
+}
+
+.avisoEntorno {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-primario);
+  font-weight: 600;
+}
+
+.panel {
+  background: var(--fondo-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.panel h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.estadoVacio {
+  margin: 0;
+  color: var(--color-texto-suave);
+}
+
+.pie {
+  padding: 0.9rem 1rem;
+  color: var(--color-texto-suave);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--color-borde);
+}
+
+.pie p {
+  margin: 0;
+  text-align: center;
+}
+
+@media (min-width: 720px) {
+  .cabecera {
+    padding: 1rem 2rem;
+  }
+
+  .principal {
+    padding-block: 2rem;
+  }
+
+  .hero {
+    padding: 2rem;
+  }
+
+  .heroTitulo {
+    font-size: 1.6rem;
+  }
+}

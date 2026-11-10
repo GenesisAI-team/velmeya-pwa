@@ -1,0 +1,26 @@
+{
+  "id": "/",
+  "name": "Velmeya — Reservas de yoga",
+  "short_name": "Velmeya",
+  "description": "Consulta horarios, reserva plaza y gestiona tus reservas de yoga.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f5f1",
+  "theme_color": "#145145",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
