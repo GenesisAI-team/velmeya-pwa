@@ -82,16 +82,24 @@ Functions v2); este bootstrap solo define y valida los contratos.
   y por `usuarioId` + `creadaEn` (reservas de un alumno).
 - `classes`: `fechaInicio` ascendente para el horario semanal.
 
-## 5. Reglas de seguridad (estado actual y plan)
+## 5. Reglas de seguridad (implementadas en GEN-46)
 
-- **Actual**: `firestore.rules` con `deny-all` global. El emulador aplica
-  reglas al arrancar, de modo que ninguna lectura/escritura pasa sin
-  autorización explícita.
-- **Plan**: introducir reglas por colección cuando exista conexión del SDK y
-  Auth en la app: propietario lee/escribe sus `reservations`; lectura
-  pública de `classes`; escritura solo vía Functions para capacidad;
-  `users` solo editable por el propio uid salvo rol admin. Cualquier
-  relajación de reglas exige su propia issue con tests de reglas.
+`firestore.rules` mantiene la **denegación por defecto** y abre solo los
+caminos probados por la suite de reglas (`src/test/emuladores/reglas-firestore.test.ts`):
+
+- **`classes`**: lectura pública (el horario se pinta sin sesión); ninguna
+  escritura desde el cliente (`create`, `update`, `delete` denegados). La
+  siembra de datos usa el acceso de propietario del emulador, equivalente al
+  intérprete autorizado que serán las Functions.
+- **`users/{uid}`**: lectura y escritura solo para el propio uid
+  (`request.auth.uid == uid`); el documento de otro usuario es inaccesible.
+- **`reservations`**: lectura solo si `request.auth.uid ==
+  resource.data.usuarioId` (puntual y por consulta); escrituras de cliente
+  denegadas porque la transacción de capacidad se ejecutará vía Functions v2
+  en la fase de reservas.
+- **Cualquier otra ruta**: denegada por el `match /{document=**}` final.
+
+Cualquier relajación adicional exige issue propia con sus tests de reglas.
 
 ## 6. Migración / evolución
 

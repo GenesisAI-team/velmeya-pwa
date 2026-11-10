@@ -1,9 +1,35 @@
-// Reglas iniciales de Firestore (GEN-35): denegar todo por defecto.
-// No se accede a producción; aflojar por colecciones cuando existan los
-// caminos de datos probados del dominio de reservas (ver docs/DATA_MODEL.md).
+// Reglas de Firestore (GEN-46): denegación por defecto con excepciones por
+// colección. Solo el emulador (proyecto demo-velmeya-local) usa estas reglas
+// en esta fase; cualquier relajación nueva exige issue y tests de reglas
+// (ver docs/DATA_MODEL.md).
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Clases (horario del estudio): lectura pública para pintar el horario;
+    // la escritura queda reservada a Functions/admin (el cliente nunca edita
+    // la oferta).
+    match /classes/{claseId} {
+      allow read: if true;
+      allow create, update, delete: if false;
+    }
+
+    // Usuarios (espejo de Auth, id = uid): cada usuario solo accede a su
+    // propio documento.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Reservas (datos privados): el dueño consulta las suyas; la escritura
+    // se bloquea al cliente porque la transacción de capacidad se ejecutará
+    // vía Functions v2 (fase de reservas).
+    match /reservations/{reservaId} {
+      allow read: if request.auth != null
+        && request.auth.uid == resource.data.usuarioId;
+      allow create, update, delete: if false;
+    }
+
+    // Denegación por defecto: cualquier ruta no contemplada queda prohibida.
     match /{document=**} {
       allow read, write: if false;
     }

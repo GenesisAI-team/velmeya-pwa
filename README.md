@@ -1,17 +1,18 @@
 # Velmeya PWA
 
-> **Estado del repositorio: bootstrap técnico operativo (`GEN-35`).**
-> La visión original sigue vigente; el bootstrap de `GEN-35` añadió
-> `package.json`, estructura de dominio/infraestructura, tests, PWA mínima y
-> configuración de emuladores. Los comandos de este README ya son
+> **Estado del repositorio: fase 2 operativa contra emuladores (`GEN-46`).**
+> El bootstrap de `GEN-35` dejó estructura, tests, PWA mínima y emuladores;
+> `GEN-46` conectó Firebase Auth (inicio/cierre/sesión restaurada con pantalla
+> protegida) y Firestore (horarios reales del emulador) con reglas por
+> colección y suite de tests de emuladores. Los comandos de este README son
 > operativos y están descritos en detalle en `docs/WORKFLOW.md`.
 
 PWA de reservas de clases de yoga: consultar horarios, reservar plaza y gestionar
 reservas desde el móvil y el escritorio, con experiencia instalable y funcionamiento
 base sin conexión.
 
-Issues de Linear asociadas: `GEN-7` (visión y convenciones) y `GEN-35`
-(bootstrap técnico).
+Issues de Linear asociadas: `GEN-7` (visión y convenciones), `GEN-35`
+(bootstrap técnico) y `GEN-46` (autenticación y consulta real de clases).
 
 ---
 
@@ -58,10 +59,10 @@ cuando se creen (ver sección 4).
 - **pnpm** como gestor de paquetes (versión fijada en `packageManager`).
 - **Vitest + Testing Library + jsdom** para pruebas unitarias y smoke.
 - **ESLint 10** con `typescript-eslint` y plugins de React.
-- **Firebase** como backend gestionado (pendiente de conectar en issues
-  posteriores; el bootstrap solo configura el entorno local):
-  - **Auth** para autenticación de usuarios.
-  - **Firestore** como base de datos principal.
+- **Firebase** como backend gestionado, conectado en local vía **Emulator
+  Suite** desde `GEN-46` (nunca contra un proyecto real en esta fase):
+  - **Auth** para autenticación de usuarios (inicio/cierre/sesión restaurada).
+  - **Firestore** como base de datos principal (horarios leídos del emulador).
   - **Functions v2** para lógica de servidor (scaffold en `functions/`).
   - **Emulator Suite** para desarrollo y pruebas en local sin tocar producción.
 
@@ -190,9 +191,11 @@ Todos los comandos existen en `package.json` y están en verde en CI:
 | `pnpm test:run` | Alias de `pnpm test`, útil en CI. |
 | `pnpm test:watch` | Vitest en modo reloj para desarrollo. |
 | `pnpm test:coverage` | Con informe de cobertura (v8). |
+| `pnpm test:emuladores` | Suite de reglas y adaptadores contra el Emulator Suite (exige emuladores en marcha). |
 | `pnpm build` | `tsc -b && vite build` → `dist/` (PWA lista para servir). |
 | `pnpm preview` | Previsualiza el build de producción en local. |
-| `pnpm emulators` | Firebase Emulator Suite con proyecto `demo-velmeya-local`. |
+| `pnpm emuladores` | Firebase Emulator Suite con proyecto `demo-velmeya-local`. |
+| `pnpm sembrar:emulador` | Datos de DEMOSTRACIÓN (usuarios y clases) en los emuladores. |
 | `pnpm build:functions` | Compila `functions/` (Cloud Functions v2). |
 | `pnpm typecheck:functions` | Tipos de `functions/` sin emitir. |
 
@@ -255,8 +258,11 @@ issue y termina con su transición de estado.
   con «firebase-tools no longer supports Java version before 21»; ver
   `docs/WORKFLOW.md`).
 - Flujo: arranca los emuladores y usa `VITE_USE_FIREBASE_EMULATORS=true`
-  en `.env.local` para que el código local apunte a ellos. Aún no hay
-  SDK inicializado: la app muestra el aviso de entorno sin consultas.
+  en `.env.local` para que la app apunte a ellos. Con los emuladores en
+  marcha, `pnpm sembrar:emulador` crea usuarios y clases de **demostración**
+  (nada real); la app muestra esos horarios y permite iniciar sesión con los
+  usuarios demo (`alumno@demo.local` / `demo1234`). Los datos del emulador
+  son volátiles: vuelve a sembrar tras reiniciarlo.
 
 ## 11. Protección de credenciales
 
