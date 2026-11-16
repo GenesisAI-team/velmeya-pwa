@@ -14,6 +14,14 @@ export interface ConfigFirebase {
 
 export type FuenteEnv = Record<string, string | undefined>
 
+/**
+ * Proyecto del Emulator Suite autorizado en local (ver AGENTS.md y
+ * `pnpm emulators`): el mismo al que escribe `scripts/sembrar-emulador.mjs`.
+ * El SDK debe usarlo como namespace de Firestore; cualquier projectId del
+ * entorno (p. ej. el placeholder de .env.example) no aplica con emuladores.
+ */
+export const PROYECTO_EMULADOR = 'demo-velmeya-local'
+
 export const CLAVES_CONFIG_FIREBASE = [
   'VITE_FIREBASE_API_KEY',
   'VITE_FIREBASE_AUTH_DOMAIN',

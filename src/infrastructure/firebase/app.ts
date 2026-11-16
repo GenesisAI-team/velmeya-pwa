@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth'
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
 import type { PuertoAuth, RepositorioClases } from '../../domain/puertos'
 import type { Validacion } from '../../domain/tipos'
-import { cargarConfigFirebase, usarEmuladores, type FuenteEnv } from './config'
+import { cargarConfigFirebase, usarEmuladores, PROYECTO_EMULADOR, type FuenteEnv } from './config'
 import { conectarAuthEmulador, crearAdaptadorAuth } from './auth'
 import { crearRepositorioClases } from './clases'
 
@@ -22,11 +22,19 @@ export function crearServiciosBackend(env: FuenteEnv): Validacion<ServiciosBacke
   const configuracion = cargarConfigFirebase(env)
   if (!configuracion.ok) return configuracion
 
-  const app = initializeApp(configuracion.valor)
+  // Con emuladores el namespace de Firestore es el del Emulator Suite
+  // (demo-velmeya-local), no el projectId del entorno: así el frontend lee
+  // las clases que siembra scripts/sembrar-emulador.mjs (hallazgo GEN-46).
+  const emuladores = usarEmuladores(env)
+  const configApp = emuladores
+    ? { ...configuracion.valor, projectId: PROYECTO_EMULADOR }
+    : configuracion.valor
+
+  const app = initializeApp(configApp)
   const auth = getAuth(app)
   const db = getFirestore(app)
 
-  if (usarEmuladores(env)) {
+  if (emuladores) {
     conectarAuthEmulador(auth)
     connectFirestoreEmulator(db, '127.0.0.1', 8080)
   }
