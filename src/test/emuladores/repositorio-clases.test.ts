@@ -28,6 +28,14 @@ beforeAll(async () => {
     duracionMinutos: 75,
     capacidadPlazas: 8,
   })
+  // Offset distinto: empieza a las 07:00Z, antes que "temprana" (08:00Z),
+  // aunque su cadena ISO ("09:00:00+02:00") es lexicográficamente mayor.
+  await sembrarClase(`demo-${SUFIJO}-offset`, {
+    titulo: 'Yin con offset (demo)',
+    fechaInicio: '2027-03-01T09:00:00+02:00',
+    duracionMinutos: 60,
+    capacidadPlazas: 10,
+  })
   await sembrarClase(`demo-${SUFIJO}-invalida`, {
     titulo: '',
     fechaInicio: 'no-es-fecha',
@@ -71,6 +79,7 @@ describe('repositorio de clases contra el emulador (GEN-46)', () => {
 
     expect(ids).toContain(`demo-${SUFIJO}-temprana`)
     expect(ids).toContain(`demo-${SUFIJO}-tardia`)
+    expect(ids).toContain(`demo-${SUFIJO}-offset`)
     expect(ids).not.toContain(`demo-${SUFIJO}-invalida`)
 
     const temprana = clases.find((clase) => clase.id === `demo-${SUFIJO}-temprana`)
@@ -83,5 +92,11 @@ describe('repositorio de clases contra el emulador (GEN-46)', () => {
     })
     expect(ids.indexOf(`demo-${SUFIJO}-temprana`)).toBeLessThan(ids.indexOf(`demo-${SUFIJO}-tardia`))
     expect(tardia).toMatchObject({ duracionMinutos: 75, capacidadPlazas: 8 })
+
+    // Orden cronológico real (instantes): 07:00Z (offset) < 08:00Z < 18:30Z,
+    // aunque el orden de cadenas de Firestore pondría "08:00Z" antes.
+    expect(ids.indexOf(`demo-${SUFIJO}-offset`)).toBeLessThan(
+      ids.indexOf(`demo-${SUFIJO}-temprana`),
+    )
   })
 })

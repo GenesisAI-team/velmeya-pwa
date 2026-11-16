@@ -26,6 +26,18 @@ export function desdeDocumentoClase(
 }
 
 /**
+ * Ordena por el instante representado (Date.parse) y no por la cadena ISO:
+ * con offsets distintos (p. ej. `...T08:00:00Z` y `...T09:00:00+02:00`)
+ * el orden lexicográfico de Firestore no es cronológico. Solo se ordenan
+ * fechas ya validadas por el dominio (`esFechaISO`), siempre parseables.
+ */
+export function ordenarClasesPorInstante(clases: Clase[]): Clase[] {
+  return [...clases].sort(
+    (a, b) => Date.parse(a.fechaInicio) - Date.parse(b.fechaInicio),
+  )
+}
+
+/**
  * Repositorio de clases contra Firestore. La lectura es pública (reglas de
  * GEN-46); los documentos que no cumplen el contrato del dominio se omiten
  * del listado y no llegan a la UI.
@@ -41,7 +53,7 @@ export function crearRepositorioClases(db: Firestore): RepositorioClases {
         const resultado = desdeDocumentoClase(documento.id, documento.data() as Record<string, unknown>)
         if (resultado.ok) clases.push(resultado.valor)
       }
-      return clases
+      return ordenarClasesPorInstante(clases)
     },
   }
 }

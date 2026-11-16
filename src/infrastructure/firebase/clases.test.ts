@@ -1,5 +1,13 @@
-import { describe, expect, it } from 'vitest'
-import { desdeDocumentoClase } from './clases'
+import { getDocs, type Firestore } from 'firebase/firestore'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { crearRepositorioClases, desdeDocumentoClase } from './clases'
+
+vi.mock('firebase/firestore', () => ({
+  collection: vi.fn(),
+  query: vi.fn(),
+  orderBy: vi.fn(),
+  getDocs: vi.fn(),
+}))
 
 const DOC_VALIDO = {
   titulo: 'Vinyasa 60',
@@ -63,5 +71,34 @@ describe('desdeDocumentoClase', () => {
     const resultado = desdeDocumentoClase('doc-6', { ...DOC_VALIDO, notas: 'campo ajeno' })
     expect(resultado.ok).toBe(true)
     if (resultado.ok) expect('notas' in resultado.valor).toBe(false)
+  })
+})
+
+describe('crearRepositorioClases', () => {
+  beforeEach(() => {
+    vi.mocked(getDocs).mockReset()
+  })
+
+  it('ordena por instante cronológico y no por cadena ISO con offsets distintos', async () => {
+    // Orden lexicográfico que devuelve Firestore: "08:00:00Z" precede a
+    // "09:00:00+02:00", pero ese instante (07:00Z) es el anterior.
+    const documentos = [
+      {
+        id: 'clase-z',
+        data: () => ({ ...DOC_VALIDO, fechaInicio: '2027-03-01T08:00:00Z' }),
+      },
+      {
+        id: 'clase-offset',
+        data: () => ({ ...DOC_VALIDO, fechaInicio: '2027-03-01T09:00:00+02:00' }),
+      },
+    ]
+    vi.mocked(getDocs).mockResolvedValue({
+      docs: documentos,
+    } as unknown as Awaited<ReturnType<typeof getDocs>>)
+
+    const repositorio = crearRepositorioClases({} as unknown as Firestore)
+    const clases = await repositorio.listarClases()
+
+    expect(clases.map((clase) => clase.id)).toEqual(['clase-offset', 'clase-z'])
   })
 })
