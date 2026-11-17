@@ -67,6 +67,25 @@ describe('desdeDocumentoClase', () => {
     if (resultado.ok) expect(resultado.valor.profesorId).toBeUndefined()
   })
 
+  it('copia el contador de ocupadas del documento al dominio (GEN-51)', () => {
+    const resultado = desdeDocumentoClase('doc-7', { ...DOC_VALIDO, ocupadas: 5 })
+    expect(resultado.ok).toBe(true)
+    if (resultado.ok) expect(resultado.valor.ocupadas).toBe(5)
+  })
+
+  it('trata ocupadas con tipo inesperado como campo ausente (GEN-51)', () => {
+    for (const ocupadas of ['5', null]) {
+      const resultado = desdeDocumentoClase('doc-8', { ...DOC_VALIDO, ocupadas })
+      expect(resultado.ok).toBe(true)
+      if (resultado.ok) expect(resultado.valor.ocupadas).toBeUndefined()
+    }
+  })
+
+  it('rechaza un contador no entero con OCUPADAS_INVALIDAS (GEN-51)', () => {
+    const resultado = desdeDocumentoClase('doc-9', { ...DOC_VALIDO, ocupadas: 2.5 })
+    expect(resultado).toEqual({ ok: false, errores: ['OCUPADAS_INVALIDAS'] })
+  })
+
   it('ignora campos adicionales del documento', () => {
     const resultado = desdeDocumentoClase('doc-6', { ...DOC_VALIDO, notas: 'campo ajeno' })
     expect(resultado.ok).toBe(true)

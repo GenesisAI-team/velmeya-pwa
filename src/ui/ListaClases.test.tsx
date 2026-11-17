@@ -29,6 +29,17 @@ describe('ListaClases', () => {
     expect(screen.getByRole('button', { name: /Vinyasa 60/ })).toHaveTextContent('fecha-rara')
   })
 
+  it('muestra las plazas libres cuando la clase trae el contador (GEN-51)', () => {
+    render(
+      <ListaClases
+        clases={[claseEjemplo({ capacidadPlazas: 12, ocupadas: 4 })]}
+        onSeleccionar={vi.fn()}
+      />,
+    )
+    expect(screen.getByRole('button', { name: /Vinyasa 60/ })).toHaveTextContent('12 plazas')
+    expect(screen.getByRole('button', { name: /Vinyasa 60/ })).toHaveTextContent('8 libres')
+  })
+
   it('notifica la clase elegida al pulsar su tarjeta', () => {
     const onSeleccionar = vi.fn()
     const clase = claseEjemplo({ id: 'c9', titulo: 'Hatha 90' })

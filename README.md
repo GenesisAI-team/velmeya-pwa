@@ -1,10 +1,12 @@
 # Velmeya PWA
 
-> **Estado del repositorio: fase 2 operativa contra emuladores (`GEN-46`).**
+> **Estado del repositorio: fase 3 operativa contra emuladores (`GEN-51`).**
 > El bootstrap de `GEN-35` dejó estructura, tests, PWA mínima y emuladores;
 > `GEN-46` conectó Firebase Auth (inicio/cierre/sesión restaurada con pantalla
 > protegida) y Firestore (horarios reales del emulador) con reglas por
-> colección y suite de tests de emuladores. Los comandos de este README son
+> colección y suite de tests de emuladores; `GEN-51` añade reservar y
+> cancelar plazas con transacciones seguras en Functions v2, plazas libres en
+> el horario y listado de reservas propias. Los comandos de este README son
 > operativos y están descritos en detalle en `docs/WORKFLOW.md`.
 
 PWA de reservas de clases de yoga: consultar horarios, reservar plaza y gestionar
@@ -12,7 +14,8 @@ reservas desde el móvil y el escritorio, con experiencia instalable y funcionam
 base sin conexión.
 
 Issues de Linear asociadas: `GEN-7` (visión y convenciones), `GEN-35`
-(bootstrap técnico) y `GEN-46` (autenticación y consulta real de clases).
+(bootstrap técnico), `GEN-46` (autenticación y consulta real de clases) y
+`GEN-51` (reservas y cancelaciones transaccionales).
 
 ---
 
@@ -62,8 +65,12 @@ cuando se creen (ver sección 4).
 - **Firebase** como backend gestionado, conectado en local vía **Emulator
   Suite** desde `GEN-46` (nunca contra un proyecto real en esta fase):
   - **Auth** para autenticación de usuarios (inicio/cierre/sesión restaurada).
-  - **Firestore** como base de datos principal (horarios leídos del emulador).
-  - **Functions v2** para lógica de servidor (scaffold en `functions/`).
+  - **Firestore** como base de datos principal (horarios y reservas propias
+    leídos del emulador).
+  - **Functions v2** para la lógica de servidor: desde `GEN-51`,
+    `reservarPlaza` y `cancelarReserva` ejecutan transacciones de Firestore
+    como intérprete autorizado (con `firebase-admin`), y el cliente nunca
+    escribe `reservations` (reglas deny-by-default de GEN-46).
   - **Emulator Suite** para desarrollo y pruebas en local sin tocar producción.
 
 ## 3. Estructura del repositorio (prevista)
@@ -261,8 +268,17 @@ issue y termina con su transición de estado.
   en `.env.local` para que la app apunte a ellos. Con los emuladores en
   marcha, `pnpm sembrar:emulador` crea usuarios y clases de **demostración**
   (nada real); la app muestra esos horarios y permite iniciar sesión con los
-  usuarios demo (`alumno@demo.local` / `demo1234`). Los datos del emulador
-  son volátiles: vuelve a sembrar tras reiniciarlo.
+  usuarios demo (`alumno@demo.local` / `demo1234`), reservar plaza y
+  cancelar. Los datos del emulador son volátiles: vuelve a sembrar tras
+  reiniciarlo.
+- Desde `GEN-51` la app llama a las Functions de reservas por el emulador de
+  Functions (puerto 5001): compila primero `pnpm build:functions` antes de
+  `pnpm emuladores` para que el emulador cargue `dist/` al día.
+- `pnpm test:emuladores` (con emuladores en marcha) ejecuta la suite de
+  reglas, adaptadores reales y funciones transaccionales
+  (`src/test/emuladores`); es la que corre dentro de `firebase emulators:exec`
+  en el job `emuladores` de CI. Sin emuladores, esa suite falla por diseño
+  (no hay backend contra el que verificar).
 
 ## 11. Protección de credenciales
 
@@ -301,12 +317,13 @@ issue y termina con su transición de estado.
   documentará cuando exista la configuración y el procedimiento probado
   (en issue propia; `firebase.json` no incluye hosting por decisión del
   bootstrap).
-- Las reservas y cancelaciones completas, el panel admin, los emails y los
-  pagos siguen siendo alcance futuro; el dominio en `src/domain` define
-  solo contratos y validaciones amparadas por tests.
+- Las reservas y cancelaciones operan desde `GEN-51` contra el Emulator
+  Suite; siguen siendo alcance futuro el panel admin, los emails, los pagos
+  y todo lo que exija el proyecto real de Firebase.
 
 ---
 
-*Documento original de `GEN-7` y actualizado por el bootstrap `GEN-35`
-(`package.json`, `firebase.json`, `.env.example`, `AGENTS.md` y `docs/`).
+*Documento original de `GEN-7`, actualizado por el bootstrap `GEN-35`
+(`package.json`, `firebase.json`, `.env.example`, `AGENTS.md` y `docs/`) y
+por `GEN-46` y `GEN-51` con cada fase operativa.
 Mantener en sincronía con el estado real del repo.*

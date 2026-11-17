@@ -91,6 +91,9 @@ describe('creación de servicios backend (cableado GEN-46)', () => {
       expect(sesion.valor.email).toBe(email)
     }
     await resultado.valor.puertoAuth.cerrarSesion()
+    // GEN-51: el cableado expone también el puerto de reservas.
+    expect(typeof resultado.valor.puertoReservas.reservarPlaza).toBe('function')
+    expect(typeof resultado.valor.puertoReservas.listarReservasDe).toBe('function')
   })
 
   it('lee las clases sembradas en demo-velmeya-local con el projectId de .env.example', async () => {

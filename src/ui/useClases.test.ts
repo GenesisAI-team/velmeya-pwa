@@ -42,4 +42,17 @@ describe('useClases', () => {
     })
     expect(hook.result.current.estado).toBe('cargando')
   })
+
+  it('recargar vuelve a consultar el repositorio (GEN-51)', async () => {
+    repositorioFalso.clases = [claseEjemplo()]
+    const hook = renderHook(() => useClases(repositorioFalso))
+    await waitFor(() => expect(hook.result.current.estado).toBe('listado'))
+    expect(repositorioFalso.llamadasListar).toBe(1)
+
+    act(() => {
+      hook.result.current.recargar()
+    })
+    await waitFor(() => expect(repositorioFalso.llamadasListar).toBe(2))
+    expect(hook.result.current.estado).toBe('listado')
+  })
 })

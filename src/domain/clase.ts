@@ -34,6 +34,16 @@ export function validarClase(entrada: EntradaClase): Validacion<Clase> {
     errores.push('PROFESOR_INVALIDO')
   }
 
+  // Contador derivado (GEN-51): opcional; si viene, debe ser un entero no
+  // negativo. Lo escribe solo la transacción de las Functions.
+  const ocupadas = entrada.ocupadas
+  if (
+    ocupadas !== undefined &&
+    !esEnteroEnRango(ocupadas, 0, CAPACIDAD_MAX_PLAZAS)
+  ) {
+    errores.push('OCUPADAS_INVALIDAS')
+  }
+
   if (errores.length > 0) return { ok: false, errores }
 
   return {
@@ -45,8 +55,18 @@ export function validarClase(entrada: EntradaClase): Validacion<Clase> {
       duracionMinutos: duracionMinutos as number,
       capacidadPlazas: capacidadPlazas as number,
       ...(profesorId ? { profesorId } : {}),
+      ...(ocupadas !== undefined ? { ocupadas } : {}),
     },
   }
+}
+
+/**
+ * Plazas libres según el contador derivado `ocupadas` (GEN-51), sin valores
+ * negativos. La verdad para reservar sigue siendo la transacción de las
+ * Functions sobre las reservas confirmadas; esto solo alimenta la UI.
+ */
+export function plazasDisponiblesDesdeContador(clase: Clase): number {
+  return Math.max(0, clase.capacidadPlazas - (clase.ocupadas ?? 0))
 }
 
 /**

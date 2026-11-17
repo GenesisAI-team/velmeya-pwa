@@ -1,5 +1,10 @@
-import type { PuertoAuth, RepositorioClases, SesionUsuario } from '../domain/puertos'
-import type { Clase, Validacion } from '../domain/tipos'
+import type {
+  PuertoAuth,
+  PuertoReservas,
+  RepositorioClases,
+  SesionUsuario,
+} from '../domain/puertos'
+import type { Clase, Reserva, Validacion } from '../domain/tipos'
 
 /**
  * Duplicados de prueba para la UI: implementan los puertos del dominio sin
@@ -65,6 +70,12 @@ export class AuthFalso implements PuertoAuth {
 
 export class RepositorioClasesFalso implements RepositorioClases {
   clases: Clase[] = []
+  /**
+   * Si se define, la i-ésima llamada a listarClases devuelve
+   * clasesPorLlamada[i-1] (cíclico): útil para simular que una transacción
+   * actualizó el contador de plazas entre cargas (GEN-51).
+   */
+  clasesPorLlamada: Clase[][] | null = null
   error: Error | null = null
   /** true simula una consulta que nunca resuelve (estado 'cargando' observable). */
   pendiente = false
@@ -74,7 +85,75 @@ export class RepositorioClasesFalso implements RepositorioClases {
     this.llamadasListar += 1
     if (this.pendiente) return new Promise<Clase[]>(() => {})
     if (this.error) throw this.error
-    return this.clases
+    if (this.clasesPorLlamada) {
+      const lista = this.clasesPorLlamada[(this.llamadasListar - 1) % this.clasesPorLlamada.length]
+      return [...lista]
+    }
+    return [...this.clases]
+  }
+}
+
+export function reservaEjemplo(sobrescritura: Partial<Reserva> = {}): Reserva {
+  return {
+    id: 'reserva-1',
+    claseId: 'clase-1',
+    usuarioId: 'usuario-1',
+    estado: 'confirmada',
+    creadaEn: '2026-12-01T08:00:00.000Z',
+    ...sobrescritura,
+  }
+}
+
+/**
+ * Duplicado del PuertoReservas (GEN-51): control manual de respuestas y del
+ * momento de resolver las acciones (para probar el estado 'en curso').
+ */
+export class PuertoReservasFalso implements PuertoReservas {
+  reservas: Reserva[] = []
+  /** Resultado que devuelve la próxima llamada a reservarPlaza. */
+  resultadoReservar: Validacion<Reserva> = { ok: true, valor: reservaEjemplo() }
+  /** Resultado que devuelve la próxima llamada a cancelarReserva. */
+  resultadoCancelar: Validacion<Reserva> = {
+    ok: true,
+    valor: reservaEjemplo({ estado: 'cancelada', canceladaEn: '2026-12-02T08:00:00.000Z' }),
+  }
+  /** Error que lanza listarReservasDe (p. ej. emulador apagado). */
+  errorListar: Error | null = null
+  /** true simula una acción que no resuelve hasta resolverAccion. */
+  accionDiferida = false
+
+  llamadasReservar: string[] = []
+  llamadasCancelar: string[] = []
+  llamadasListar: string[] = []
+
+  private resolvers: Array<(resultado: Validacion<Reserva>) => void> = []
+
+  async reservarPlaza(claseId: string): Promise<Validacion<Reserva>> {
+    this.llamadasReservar.push(claseId)
+    if (this.accionDiferida) return new Promise<Validacion<Reserva>>((resolver) => {
+      this.resolvers.push(resolver)
+    })
+    return this.resultadoReservar
+  }
+
+  async cancelarReserva(reservaId: string): Promise<Validacion<Reserva>> {
+    this.llamadasCancelar.push(reservaId)
+    if (this.accionDiferida) return new Promise<Validacion<Reserva>>((resolver) => {
+      this.resolvers.push(resolver)
+    })
+    return this.resultadoCancelar
+  }
+
+  async listarReservasDe(usuarioId: string): Promise<Reserva[]> {
+    this.llamadasListar.push(usuarioId)
+    if (this.errorListar) throw this.errorListar
+    return this.reservas
+  }
+
+  /** Resuelve la acción diferida más antigua con el resultado dado. */
+  resolverAccion(resultado: Validacion<Reserva>): void {
+    const resolver = this.resolvers.shift()
+    resolver?.(resultado)
   }
 }
 

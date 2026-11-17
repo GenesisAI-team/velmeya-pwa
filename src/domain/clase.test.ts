@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { plazasDisponibles, validarClase } from './clase'
+import { plazasDisponibles, plazasDisponiblesDesdeContador, validarClase } from './clase'
 import type { Reserva } from './tipos'
 
 const claseValida = {
@@ -60,6 +60,46 @@ describe('validarClase', () => {
       ok: false,
       errores: ['PROFESOR_INVALIDO'],
     })
+  })
+
+  it('acepta el contador de ocupadas cuando es un entero no negativo (GEN-51)', () => {
+    expect(validarClase({ ...claseValida, ocupadas: 0 })).toEqual({
+      ok: true,
+      valor: { ...claseValida, ocupadas: 0 },
+    })
+    expect(validarClase({ ...claseValida, ocupadas: 5 })).toEqual({
+      ok: true,
+      valor: { ...claseValida, ocupadas: 5 },
+    })
+  })
+
+  it('rechaza un contador de ocupadas no entero o negativo (GEN-51)', () => {
+    expect(validarClase({ ...claseValida, ocupadas: 2.5 })).toEqual({
+      ok: false,
+      errores: ['OCUPADAS_INVALIDAS'],
+    })
+    expect(validarClase({ ...claseValida, ocupadas: -1 })).toEqual({
+      ok: false,
+      errores: ['OCUPADAS_INVALIDAS'],
+    })
+  })
+})
+
+describe('plazasDisponiblesDesdeContador (GEN-51)', () => {
+  it('descuenta las plazas ocupadas de la capacidad', () => {
+    expect(
+      plazasDisponiblesDesdeContador({ ...claseValida, capacidadPlazas: 12, ocupadas: 4 }),
+    ).toBe(8)
+  })
+
+  it('devuelve la capacidad completa cuando el contador no está presente', () => {
+    expect(plazasDisponiblesDesdeContador({ ...claseValida, capacidadPlazas: 12 })).toBe(12)
+  })
+
+  it('no devuelve plazas negativas ante una sobreasignación defensiva', () => {
+    expect(
+      plazasDisponiblesDesdeContador({ ...claseValida, capacidadPlazas: 2, ocupadas: 5 }),
+    ).toBe(0)
   })
 })
 

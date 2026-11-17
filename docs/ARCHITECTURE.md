@@ -1,7 +1,9 @@
 # Arquitectura — Velmeya PWA
 
-Documento de referencia del bootstrap técnico (`GEN-35`). Describe la
-estructura real del repo y las decisiones tomadas. Issue de Linear: `GEN-35`.
+Documento de referencia del bootstrap técnico (`GEN-35`), actualizado por
+`GEN-46` (Auth + Firestore) y por `GEN-51` (reservas y cancelaciones con
+transacciones en Functions). Describe la estructura real del repo y las
+decisiones tomadas.
 
 ---
 
@@ -12,15 +14,20 @@ PWA de reservas de clases de yoga construida con **React + TypeScript + Vite**
 desarrollo local exclusivamente vía **Emulator Suite**. Aún no existe
 conexión real a un proyecto de Firebase ni despliegue.
 
-Estado (noviembre 2026, tras `GEN-46`):
+Estado (noviembre 2026, tras `GEN-51`):
 
 - Contratos de dominio con validaciones TDD (usuarios, clases, reservas) y
-  puertos de sesión y repositorio (`src/domain/puertos.ts`).
+  puertos de sesión, clases y reservas (`src/domain/puertos.ts`).
 - Autenticación (inicio/cierre/sesión restaurada) contra el **Auth Emulator**,
   con estados de carga y error y la pantalla de reservas protegida.
 - Listado y detalle de clases desde el **Firestore Emulator**, validados con
   el dominio; reglas por colección con denegación por defecto y tests de
   reglas (`src/test/emuladores`).
+- **Reservas y cancelaciones (GEN-51)**: llamadas autenticadas de Functions
+  v2 (`reservarPlaza`, `cancelarReserva`) sobre transacciones de Firestore
+  como intérprete autorizado, con cupo, bloqueo de clases iniciadas,
+  propiedad de la reserva e idempotencia; UI con plazas libres, botón de
+  reserva, listado de reservas propias y cancelación.
 - Shell responsive mínimo, manifest PWA instalable y service worker offline
   reducido.
 - Sin backend real: todo contra el Emulator Suite (`demo-velmeya-local`);
@@ -47,13 +54,13 @@ velmeya-pwa/
 ├── public/                     # manifest.webmanifest, icons/, favicon, sw.js
 ├── src/
 │   ├── main.tsx                # Cableado: crearServiciosBackend + montaje React
-│   ├── App.tsx                 # Shell responsive: horarios (Firestore) + reservas (protegida)
+│   ├── App.tsx                 # Shell responsive: horarios con reserva + mis reservas
 │   ├── domain/
-│   │   ├── tipos.ts            # Usuario, Clase, Reserva, Validacion<T>...
-│   │   ├── puertos.ts          # PuertoAuth y RepositorioClases (contratos)
+│   │   ├── tipos.ts            # Usuario, Clase (+ ocupadas), Reserva, Validacion<T>...
+│   │   ├── puertos.ts          # PuertoAuth, RepositorioClases y PuertoReservas
 │   │   ├── fechas.ts           # esFechaISO / esEnteroEnRango / partesFechaISO
 │   │   ├── usuario.ts          # validarUsuario
-│   │   ├── clase.ts            # validarClase, plazasDisponibles
+│   │   ├── clase.ts            # validarClase, plazasDisponibles, plazasDisponiblesDesdeContador
 │   │   └── reserva.ts          # filtrarConfirmadas, reservar, cancelar, validarReserva
 │   ├── infrastructure/
 │   │   └── firebase/
@@ -61,41 +68,55 @@ velmeya-pwa/
 │   │       ├── app.ts          # crearServiciosBackend (cableado único del SDK)
 │   │       ├── auth.ts         # crearAdaptadorAuth (PuertoAuth sobre Firebase Auth)
 │   │       ├── clases.ts       # crearRepositorioClases + desdeDocumentoClase
+│   │       ├── reservas.ts     # crearAdaptadorReservas (PuertoReservas: Functions + Firestore)
 │   │       └── erroresAuth.ts  # mapearErrorAuth: códigos Firebase → códigos estables
 │   ├── ui/
 │   │   ├── sesion.ts           # Contexto + useSesion (estado de sesión UI)
 │   │   ├── ProveedorSesion.tsx # Proveedor con estados carga/anónima/autenticada
 │   │   ├── FormularioInicioSesion.tsx
-│   │   ├── useClases.ts        # Estados de carga/listado/vacío/error del horario
+│   │   ├── useClases.ts        # Estados de carga/listado/vacío/error + recargar
+│   │   ├── useReservas.ts      # useGestionReservas: listado propio, reservar, cancelar
 │   │   ├── ListaClases.tsx
 │   │   └── DetalleClase.tsx
 │   ├── test/
 │   │   ├── setup.ts            # jsdom + jest-dom + cleanup
-│   │   ├── fakes.ts            # Duplicados de PuertoAuth/RepositorioClases
-│   │   └── emuladores/         # Suite real contra emuladores (reglas y adaptadores)
+│   │   ├── fakes.ts            # Duplicados de PuertoAuth/RepositorioClases/PuertoReservas
+│   │   └── emuladores/         # Suite real contra emuladores (reglas, adaptadores, Functions)
 │   └── styles/global.css       # Design system mínimo (mobile-first)
-└── functions/                  # Package Functions v2 (scaffold, ping)
+└── functions/                  # Package Functions v2
+    ├── src/
+    │   ├── index.ts            # ping + reservarPlaza/cancelarReserva (onCall)
+    │   └── reservas.ts         # Transacciones Firestore: reservarPlazaEnTransaccion, cancelarReservaEnTransaccion
+    └── package.json            # firebase-functions + firebase-admin
 ```
 
 ## 3. Capas y reglas de dependencia
 
 - **`src/domain`**: TypeScript puro, sin React ni Firebase. Define entidades
   (`Usuario`, `Clase`, `Reserva`), los puertos (`PuertoAuth`,
-  `RepositorioClases` en `puertos.ts`) y el patrón de resultado
-  `Validacion<T>` con códigos de error estables (`ID_REQUERIDO`,
+  `RepositorioClases` y `PuertoReservas` en `puertos.ts`) y el patrón de
+  resultado `Validacion<T>` con códigos de error estables (`ID_REQUERIDO`,
   `CLASE_COMPLETA`...). Las reglas de negocio (`reservar`, `cancelar`,
   `plazasDisponibles`) son funciones puras testeables sin entorno.
 - **`src/infrastructure`**: adaptadores Firebase. `crearServiciosBackend`
   (`app.ts`) es el único punto que inicializa el SDK y conecta los
-  emuladores; `auth.ts` implementa `PuertoAuth` y `clases.ts` implementa
-  `RepositorioClases` (mapeando documentos con `validarClase`, sin excepciones).
-  El dominio nunca importa de aquí; la infraestructura puede usar el dominio.
+  emuladores (Auth, Firestore y Functions); `auth.ts` implementa
+  `PuertoAuth`, `clases.ts` implementa `RepositorioClases` y `reservas.ts`
+  implementa `PuertoReservas` (mapeando documentos con el dominio, sin
+  excepciones). El dominio nunca importa de aquí; la infraestructura puede
+  usar el dominio.
 - **UI** (`src/ui` + `App.tsx`): componentes con estados observables
   (`cargando`/`anónima`/`autenticada` para sesión; `cargando`/`listado`/
-  `vacío`/`error` para horarios). Recibe los puertos por props, de modo que
-  los tests la ejercitan con duplicados (`src/test/fakes.ts`) sin Firebase.
-- **`functions`**: package independiente (Cloud Functions v2, `onCall`)
-  con un `ping` de humo; sin lógica de negocio todavía.
+  `vacío`/`error` para horarios y reservas). Recibe los puertos por props,
+  de modo que los tests la ejercitan con duplicados (`src/test/fakes.ts`)
+  sin Firebase.
+- **`functions`**: package independiente (Cloud Functions v2, `onCall`) con
+  `ping` de humo y, desde GEN-51, las llamadas transaccionales de
+  `reservarPlaza`/`cancelarReserva`. El módulo `functions/src/reservas.ts`
+  recibe el `Firestore` de administrador por parámetro (solo tipos de
+  `firebase-admin`), de modo que la suite de emuladores lo inyecta sin
+  cargar dependencias ajenas a la app; `functions/src/index.ts` inicializa
+  el SDK de administrador y traduce los códigos del dominio a `HttpsError`.
 
 ## 4. Decisiones (mini-ADRs)
 
@@ -127,6 +148,22 @@ velmeya-pwa/
   `src/test/emuladores` con su config (`vitest.emuladores.config.ts`) y no
   corren en `pnpm test:run`; en CI se ejecutan dentro de
   `firebase emulators:exec` con JDK 21 (job `emuladores`).
+- **ADR-9 — Escrituras de reservas solo vía Functions transaccionales
+  (GEN-51)**: el cliente nunca escribe `reservations` (reglas GEN-46 sin
+  cambios); `reservarPlaza`/`cancelarReserva` son llamadas `onCall`
+  autenticadas cuyo dueño es `request.auth.uid` (nunca un dato del cliente).
+  Dentro de la transacción se releen la clase y sus reservas confirmadas y
+  se aplican las reglas puras del dominio: la serialización de las
+  transacciones garantiza que dos peticiones concurrentes a la última plaza
+  no generen sobrecupo. El contador `ocupadas` de la clase es **derivado**
+  (se recalcula en la misma transacción y solo alimenta la UI): el cupo
+  real siempre se comprueba contra las reservas confirmadas. Los errores
+  llegan al cliente como `HttpsError` cuyo mensaje es la lista de códigos
+  estables del dominio, y el adaptador los traduce a `Validacion<T>`.
+- **ADR-10 — Dominio compartido app/Functions (GEN-51)**: `functions/`
+  compila también `src/domain` (tsconfig con `rootDir ".."`) para reutilizar
+  `reservar`, `cancelar` y los validadores sin duplicar la verdad; el
+  punto de entrada cambia a `dist/functions/src/index.js`.
 
 ## 5. PWA: instalación y límites offline (exactitud)
 
@@ -159,14 +196,16 @@ velmeya-pwa/
   Suite (Auth 9099, Firestore 8080). Con configuración incompleta la app
   muestra los códigos de error estables en lugar de arrancar a medias.
 - Datos: `pnpm sembrar:emulador` siembra usuarios y clases **de
-  demostración** en el emulador (nada real).
-- `functions/`: TypeScript → `dist`, `onCall({ cors: true })` con `ping`.
-  Dependencias mínimas (`firebase-functions`); `firebase-admin` se añadirá
-  con la primera función que necesite acceso a Firestore.
-- Pendiente (fases siguientes, nuevas issues): reservas transaccionales
-  (escrituras vía Functions), registro de cuentas nuevas desde la app
-  (hoy los usuarios se crean en el Emulator UI o con el script de siembra),
-  listeners en tiempo real y despliegue a producción.
+  demostración** en el emulador (nada real); las clases arrancan con
+  `ocupadas: 0`.
+- `functions/`: TypeScript → `dist` (entrada `dist/functions/src/index.js`
+  tras ADR-10), `onCall({ cors: true })` con `ping` y las llamadas de
+  reservas; dependencias `firebase-functions` y `firebase-admin` (el
+  intérprete autorizado de las transacciones).
+- Pendiente (fases siguientes, nuevas issues): registro de cuentas nuevas
+  desde la app (hoy los usuarios se crean en el Emulator UI o con el script
+  de siembra), listeners en tiempo real, panel admin, emails, pagos y
+  despliegue a producción.
 
 ## 7. Calidad y CI
 

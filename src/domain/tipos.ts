@@ -23,6 +23,12 @@ export interface Clase {
   capacidadPlazas: number
   /** Opcional: identificador del usuario con rol 'profesor'. */
   profesorId?: string
+  /**
+   * Opcional (GEN-51): plazas ocupadas confirmadas, contador derivado escrito
+   * solo por las Functions en la transacción de reserva/cancelación. Puede
+   * estar ausente en documentos antiguos o sin transacciones todavía.
+   */
+  ocupadas?: number
 }
 
 export interface Reserva {
@@ -50,6 +56,7 @@ export interface EntradaClase {
   duracionMinutos?: number
   capacidadPlazas?: number
   profesorId?: string
+  ocupadas?: number
 }
 
 export interface EntradaReserva {
