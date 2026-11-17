@@ -36,6 +36,7 @@ if (!resultado.ok) {
       <App
         puertoAuth={resultado.valor.puertoAuth}
         repositorioClases={resultado.valor.repositorioClases}
+        puertoReservas={resultado.valor.puertoReservas}
       />
     </StrictMode>,
   )

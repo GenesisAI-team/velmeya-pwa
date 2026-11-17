@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, it } from 'vitest'
 import {
   assertFails,
   assertSucceeds,
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing'
+import { crearSembrador } from './apoyo'
 
 // Proyecto de demo (prefijo demo-): nunca puede llegar a un proyecto real.
 const PROYECTO = 'demo-velmeya-reglas'
@@ -14,6 +15,7 @@ const HOST = '127.0.0.1'
 const PUERTO_FIRESTORE = 8080
 
 let entorno: RulesTestEnvironment
+let sembrarDocumento: ReturnType<typeof crearSembrador>
 
 beforeAll(async () => {
   entorno = await initializeTestEnvironment({
@@ -24,6 +26,7 @@ beforeAll(async () => {
       port: PUERTO_FIRESTORE,
     },
   })
+  sembrarDocumento = crearSembrador(PROYECTO, HOST, PUERTO_FIRESTORE)
 })
 
 afterAll(async () => {
@@ -33,30 +36,6 @@ afterAll(async () => {
 afterEach(async () => {
   await entorno.clearFirestore()
 })
-
-/**
- * Siembra un documento vía REST del emulador con la cabecera de propietario
- * (acceso privilegiado del emulador), equivalente a lo que harán Functions.
- */
-async function sembrarDocumento(
-  coleccion: string,
-  id: string,
-  campos: Record<string, string>,
-): Promise<void> {
-  const fields: Record<string, { stringValue: string }> = {}
-  for (const [clave, valor] of Object.entries(campos)) {
-    fields[clave] = { stringValue: valor }
-  }
-  const respuesta = await fetch(
-    `http://${HOST}:${PUERTO_FIRESTORE}/v1/projects/${PROYECTO}/databases/(default)/documents/${coleccion}?documentId=${id}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer owner' },
-      body: JSON.stringify({ fields }),
-    },
-  )
-  expect(respuesta.ok, `siembra de ${coleccion}/${id} fallida: ${await respuesta.text()}`).toBe(true)
-}
 
 describe('reglas Firestore por colección (GEN-46)', () => {
   describe('classes (horario del estudio)', () => {

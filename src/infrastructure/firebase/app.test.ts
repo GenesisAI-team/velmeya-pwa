@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { crearServiciosBackend } from './app'
 
-const { inicializarApp, conectarFirestore, conectarAuth } = vi.hoisted(() => ({
-  inicializarApp: vi.fn(),
-  conectarFirestore: vi.fn(),
-  conectarAuth: vi.fn(),
-}))
+const { inicializarApp, conectarFirestore, conectarAuth, obtenerFunciones, conectarFunciones } =
+  vi.hoisted(() => ({
+    inicializarApp: vi.fn(),
+    conectarFirestore: vi.fn(),
+    conectarAuth: vi.fn(),
+    obtenerFunciones: vi.fn(),
+    conectarFunciones: vi.fn(),
+  }))
 
 vi.mock('firebase/app', () => ({ initializeApp: inicializarApp }))
 vi.mock('firebase/auth', () => ({
@@ -23,6 +26,11 @@ vi.mock('firebase/firestore', () => ({
   orderBy: vi.fn(),
   getDocs: vi.fn(),
 }))
+vi.mock('firebase/functions', () => ({
+  getFunctions: obtenerFunciones,
+  connectFunctionsEmulator: conectarFunciones,
+  httpsCallable: vi.fn(),
+}))
 
 // Mismo contrato que .env.example: projectId placeholder tal cual se copia.
 const ENV_EJEMPLO = {
@@ -39,6 +47,10 @@ beforeEach(() => {
   inicializarApp.mockReset()
   conectarFirestore.mockReset()
   conectarAuth.mockReset()
+  obtenerFunciones.mockReset()
+  conectarFunciones.mockReset()
+  // La app de Functions simulada: algo distinto de undefined para el Any.
+  obtenerFunciones.mockReturnValue({})
 })
 
 describe('crearServiciosBackend: proyecto del Emulator Suite (GEN-46)', () => {
@@ -50,6 +62,17 @@ describe('crearServiciosBackend: proyecto del Emulator Suite (GEN-46)', () => {
     )
     expect(conectarFirestore).toHaveBeenCalled()
     expect(conectarAuth).toHaveBeenCalled()
+    expect(conectarFunciones).toHaveBeenCalledWith(expect.anything(), '127.0.0.1', 5001)
+  })
+
+  it('expone el puerto de reservas (GEN-51)', () => {
+    const resultado = crearServiciosBackend(ENV_EJEMPLO)
+    expect(resultado.ok).toBe(true)
+    if (resultado.ok) {
+      expect(typeof resultado.valor.puertoReservas.reservarPlaza).toBe('function')
+      expect(typeof resultado.valor.puertoReservas.cancelarReserva).toBe('function')
+      expect(typeof resultado.valor.puertoReservas.listarReservasDe).toBe('function')
+    }
   })
 
   it('respeta el projectId del entorno cuando los emuladores están desactivados', () => {
@@ -64,5 +87,6 @@ describe('crearServiciosBackend: proyecto del Emulator Suite (GEN-46)', () => {
     )
     expect(conectarFirestore).not.toHaveBeenCalled()
     expect(conectarAuth).not.toHaveBeenCalled()
+    expect(conectarFunciones).not.toHaveBeenCalled()
   })
 })
