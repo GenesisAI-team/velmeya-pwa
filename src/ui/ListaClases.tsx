@@ -1,4 +1,5 @@
 import { partesFechaISO } from '../domain/fechas'
+import { plazasDisponiblesDesdeContador } from '../domain/clase'
 import type { Clase } from '../domain/tipos'
 
 interface PropiedadesListaClases {
@@ -13,6 +14,10 @@ export function ListaClases({ clases, onSeleccionar }: PropiedadesListaClases) {
       {clases.map((clase) => {
         const partes = partesFechaISO(clase.fechaInicio)
         const cuando = partes ? `${partes.fecha} ${partes.hora}` : clase.fechaInicio
+        const plazas =
+          clase.ocupadas === undefined
+            ? `${clase.capacidadPlazas} plazas`
+            : `${clase.capacidadPlazas} plazas · ${plazasDisponiblesDesdeContador(clase)} libres`
         return (
           <li key={clase.id}>
             <button
@@ -22,7 +27,7 @@ export function ListaClases({ clases, onSeleccionar }: PropiedadesListaClases) {
             >
               <strong className="tituloClase">{clase.titulo}</strong>
               <span className="metaClase">
-                {cuando} · {clase.duracionMinutos} min · {clase.capacidadPlazas} plazas
+                {cuando} · {clase.duracionMinutos} min · {plazas}
               </span>
             </button>
           </li>
