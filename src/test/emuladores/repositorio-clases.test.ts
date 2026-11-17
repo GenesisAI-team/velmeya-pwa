@@ -42,6 +42,13 @@ beforeAll(async () => {
     duracionMinutos: 0,
     capacidadPlazas: 0,
   })
+  await sembrarClase(`demo-${SUFIJO}-contada`, {
+    titulo: 'Con contador (demo)',
+    fechaInicio: '2027-03-02T08:00:00.000Z',
+    duracionMinutos: 60,
+    capacidadPlazas: 10,
+    ocupadas: 3,
+  })
 })
 
 afterAll(async () => {
@@ -98,5 +105,12 @@ describe('repositorio de clases contra el emulador (GEN-46)', () => {
     expect(ids.indexOf(`demo-${SUFIJO}-offset`)).toBeLessThan(
       ids.indexOf(`demo-${SUFIJO}-temprana`),
     )
+  })
+
+  it('propaga el contador de plazas ocupadas del documento real (GEN-51)', async () => {
+    const repositorio = crearRepositorioClases(db)
+    const clases = await repositorio.listarClases()
+    const conContador = clases.find((clase) => clase.id === `demo-${SUFIJO}-contada`)
+    expect(conContador).toMatchObject({ capacidadPlazas: 10, ocupadas: 3 })
   })
 })
