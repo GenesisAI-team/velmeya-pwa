@@ -52,6 +52,9 @@ async function sembrarClase({ id, titulo, fechaInicio, duracionMinutos, capacida
     fechaInicio: { stringValue: fechaInicio },
     duracionMinutos: { integerValue: String(duracionMinutos) },
     capacidadPlazas: { integerValue: String(capacidadPlazas) },
+    // Contador derivado (GEN-51): lo mantienen las Functions al reservar o
+    // cancelar; las clases demo arrancan con el horario vacío.
+    ocupadas: { integerValue: '0' },
   }
   if (profesorId) campos.profesorId = { stringValue: profesorId }
   const respuesta = await fetch(

@@ -1,8 +1,8 @@
 # Modelo de datos inicial — Firestore (Velmeya PWA)
 
-Descripción del modelo previsto para el dominio de reservas en el bootstrap
-(`GEN-35`). Las colecciones no se crean todavía en producción; el único
-entorno es el emulador con el proyecto `demo-velmeya-local`.
+Descripción del modelo de dominio de reservas. Actualizado en `GEN-51`: las
+colecciones operan contra el Emulator Suite (`demo-velmeya-local`) y las
+escrituras de reservas van por Functions v2 con transacciones.
 
 ---
 
@@ -10,6 +10,8 @@ entorno es el emulador con el proyecto `demo-velmeya-local`.
 
 - Identificadores: `id` generado por Firestore para `classes` y
   `reservations`; para `users` se usa el `uid` de Auth como id de documento.
+  El campo `id` NO se almacena en el documento: se toma de la ruta del
+  documento al leerlo.
 - Fechas: **ISO 8601 instantáneo con offset** (`2026-12-01T10:00:00Z`). El
   dominio valida el formato (`esFechaISO` en `src/domain/fechas.ts`). El
   almacenamiento como `Timestamp` de Firestore es compatible; convertir
@@ -45,6 +47,13 @@ clases = profesor/admin). Un usuario `alumno` no ve datos de terceros.
 | `duracionMinutos` | number  | entero 1..480 (`DURACION_INVALIDA`)                       |
 | `capacidadPlazas` | number  | entero 1..200 (`CAPACIDAD_INVALIDA`)                      |
 | `profesorId`      | string? | opcional; si existe no vacío (`PROFESOR_INVALIDO`)        |
+| `ocupadas`        | number? | opcional (GEN-51); entero ≥ 0 si existe (`OCUPADAS_INVALIDAS`) |
+
+`ocupadas` es un **contador derivado**: lo recalcula la transacción de las
+Functions al reservar o cancelar (recontando las reservas confirmadas de la
+clase) y solo alimenta la UI (`plazasDisponiblesDesdeContador`). El cupo
+real se comprueba siempre contra las reservas confirmadas, nunca contra el
+contador. El cliente nunca lo escribe (reglas: `classes` sin escrituras).
 
 ### `reservations/{id}` — reserva (espejo de `Reserva`)
 
@@ -60,8 +69,7 @@ clases = profesor/admin). Un usuario `alumno` no ve datos de terceros.
 ## 3. Reglas de negocio del dominio (funciones puras)
 
 Localizadas en `src/domain/reserva.ts` (reglas en el momento de reservar o
-cancelar; equivalentes a las comprobaciones que harán Functions v2 como
-intérprete autorizado):
+cancelar):
 
 - **Reservar**: la clase no puede haber empezado (`CLASE_INICIADA`),
   deben quedar plazas (`CLASE_COMPLETA`) y el usuario no puede tener esa
@@ -72,20 +80,33 @@ intérprete autorizado):
 - **Cancelar**: idempotencia protegida (`YA_CANCELADA`), clase iniciada
   bloqueada (`CLASE_INICIADA`); la cancelación actualiza `canceladaEn`.
 
-Las escrituras a Firestore de las funciones `reservar` / `cancelar` llegarán
-con las issues de funcionalidad completa (transacción de capacidad en
-Functions v2); este bootstrap solo define y valida los contratos.
+Desde `GEN-51` estas reglas se aplican dentro de la transacción de las
+Functions (`functions/src/reservas.ts`) como intérprete autorizado: la
+transacción relee la clase y sus reservas confirmadas, aplica el dominio y
+escribe la reserva y el contador de forma atómica, así que dos peticiones
+concurrentes a la última plaza no generan sobrecupo. Códigos añadidos en la
+capa de Functions: `CLASE_NO_ENCONTRADA`, `CLASE_INVALIDA`,
+`RESERVA_NO_ENCONTRADA`, `RESERVA_INVALIDA`, `RESERVA_AJENA`
+(propiedad de la reserva), `SESION_REQUERIDA` (sin sesión en la llamada) y
+`ERROR_SERVIDOR` (transporte). La cancelación de la reserva de otro usuario
+queda bloqueada en la transacción y el cliente solo puede leer sus propias
+reservas por reglas.
 
-## 4. Índices previstos (fase de implementación)
+## 4. Índices
 
-- `reservations`: compuesto por `claseId` + `estado` (recuento de plazas)
-  y por `usuarioId` + `creadaEn` (reservas de un alumno).
-- `classes`: `fechaInicio` ascendente para el horario semanal.
+Las consultas actuales usan filtros de igualdad de un solo campo
+(`reservations.claseId` y `reservations.usuarioId`), cubiertos por los
+índices automáticos de Firestore: no hace falta `firestore.indexes.json`.
+Si más adelante se consulta por compuestos (`usuarioId` + `creadaEn`
+ordenado en servidor, por ejemplo), se añadirán con su issue y sus reglas de
+prueba.
 
-## 5. Reglas de seguridad (implementadas en GEN-46)
+## 5. Reglas de seguridad (implementadas en GEN-46, vigentes en GEN-51)
 
 `firestore.rules` mantiene la **denegación por defecto** y abre solo los
-caminos probados por la suite de reglas (`src/test/emuladores/reglas-firestore.test.ts`):
+caminos probados por la suite de reglas (`src/test/emuladores/reglas-firestore.test.ts`),
+sin cambios en GEN-51 (las escrituras de reservas siguen prohibidas al
+cliente; las transacciones van vía Functions como intérprete autorizado):
 
 - **`classes`**: lectura pública (el horario se pinta sin sesión); ninguna
   escritura desde el cliente (`create`, `update`, `delete` denegados). La
