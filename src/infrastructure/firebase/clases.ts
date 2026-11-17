@@ -21,6 +21,9 @@ export function desdeDocumentoClase(
     duracionMinutos: typeof datos.duracionMinutos === 'number' ? datos.duracionMinutos : undefined,
     capacidadPlazas: typeof datos.capacidadPlazas === 'number' ? datos.capacidadPlazas : undefined,
     ...(typeof datos.profesorId === 'string' ? { profesorId: datos.profesorId } : {}),
+    // Contador derivado (GEN-51): escrito solo por las Functions; sin él la
+    // UI nunca ve las plazas restantes ni bloquea clases llenas.
+    ...(typeof datos.ocupadas === 'number' ? { ocupadas: datos.ocupadas } : {}),
   }
   return validarClase(entrada)
 }
