@@ -50,8 +50,12 @@ export function crearServiciosBackend(env: FuenteEnv): Validacion<ServiciosBacke
     connectFunctionsEmulator(funciones, '127.0.0.1', 5001)
   }
 
-  const llamarFuncion: LlamadorFunciones = (nombre, entrada) =>
-    httpsCallable(funciones, nombre)(entrada) as Promise<unknown>
+  // El SDK real resuelve el callable a HttpsCallableResult: la carga útil
+  // llega en `.data` y el adaptador espera la reserva plana (hallazgo GEN-51).
+  const llamarFuncion: LlamadorFunciones = async (nombre, entrada) => {
+    const resultado = await httpsCallable(funciones, nombre)(entrada)
+    return resultado.data
+  }
 
   return {
     ok: true,
