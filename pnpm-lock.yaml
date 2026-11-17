@@ -78,6 +78,9 @@ importers:
 
   functions:
     dependencies:
+      firebase-admin:
+        specifier: ^13.10.0
+        version: 13.10.0(@firebase/app-compat@0.5.21)(@firebase/app@0.16.5)
       firebase-functions:
         specifier: ^6.0.0
         version: 6.6.0(firebase-admin@13.10.0(@firebase/app-compat@0.5.21)(@firebase/app@0.16.5))
@@ -5838,7 +5841,7 @@ snapshots:
 
   compressible@2.0.18:
     dependencies:
-      mime-db: 1.52.0
+      mime-db: 1.54.0
 
   compression@1.8.2:
     dependencies:
