@@ -17,16 +17,20 @@
     "test:run": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "emulators": "firebase emulators:start --project demo-velmeya-local",
+    "test:emuladores": "vitest run --config vitest.emuladores.config.ts",
+    "emuladores": "firebase emulators:start --project demo-velmeya-local",
+    "sembrar:emulador": "node scripts/sembrar-emulador.mjs",
     "build:functions": "pnpm --filter velmeya-functions build",
     "typecheck:functions": "pnpm --filter velmeya-functions typecheck"
   },
   "dependencies": {
+    "firebase": "^13.2.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@firebase/rules-unit-testing": "^6.0.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -37,6 +41,7 @@
     "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
+    "firebase-tools": "^15.35.0",
     "globals": "^17.14.0",
     "jsdom": "^31.0.0",
     "typescript": "^5.9.3",
